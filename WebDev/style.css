@@ -1,3 +1,18 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
 #map {
-    height: 100vh;
+    position: static;
+    border: 1px solid black;
+    height: 50vh;
+    width: 75%
+    padding: 10px;
+}
+
+#results-section {
+    position: -webkit-sticky; /* for Safari */
+    position: sticky;
+    top: 0;
 }
