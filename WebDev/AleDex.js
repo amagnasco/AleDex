@@ -77,11 +77,11 @@
         
         // display lon, lat, elevation
         document.getElementById('selected-area').innerHTML = 
-            'Lat: ' + coords.lat + ' '
-            + 'Lon: ' + coords.lng
+            'Lat: ' + Math.round((coords.lat + Number.EPSILON)*1000)/1000 + '; '
+            + 'Lon: ' + Math.round((coords.lng + Number.EPSILON)*1000)/1000
             + '<br>'
             + 'Elevation: ' + elevation + 'm (work in progress); '
-            + 'Accuracy: ' + coords_accuracy + 'm'
+            + 'Search radius: ' + coords_accuracy + 'm'
     });
 
     // change map style 
