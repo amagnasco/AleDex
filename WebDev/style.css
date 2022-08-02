@@ -1,18 +1,38 @@
 body {
     margin: 0;
-    padding: 0;
+    padding: 10%;
+}
+
+#main-title {
+    position: relative;
+    padding: -10%;
 }
 
 #map {
-    position: static;
+    position: relative;
     border: 1px solid black;
     height: 50vh;
-    width: 75%
-    padding: 10px;
+    width: 75%;
+    padding: 10vh;
 }
 
 #results-section {
     position: -webkit-sticky; /* for Safari */
     position: sticky;
     top: 0;
+}
+
+#selected-area {
+    display: table;
+    position: relative;
+    margin: 0px auto;
+    word-wrap: anywhere;
+    white-space: pre-wrap;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    text-align: center;
+    color: #222;
+    background: #fff;
 }
