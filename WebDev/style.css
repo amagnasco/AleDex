@@ -1,11 +1,28 @@
 body {
     margin: 0;
     padding: 10%;
+    max-width: 680px;
+}
+
+#top-section{
+    display: block;
+    z-index: 2;
 }
 
 #main-title {
     position: relative;
     padding: -10%;
+}
+
+#logo {
+    image-rendering: pixelated;
+    width: 100px;
+    height: auto;
+    position: relative;
+    left: 400px;
+    top: 1vh;
+    z-index: 1;
+    display: block;
 }
 
 #map {
@@ -14,6 +31,7 @@ body {
     height: 50vh;
     width: 75%;
     padding: 10vh;
+    top: 2vh;
 }
 
 #results-section {

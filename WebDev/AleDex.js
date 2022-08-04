@@ -6,7 +6,7 @@
 // generate buttons
 // generate initial longitude and latitude
     let coords = {lng: -72,lat: 22}
-    let coords_accuracy = 1000; // in meters
+    let coords_accuracy = 20; // in kilometers
 
 // check if MapBox can render in this browser
 // https://docs.mapbox.com/mapbox-gl-js/example/check-for-support/
@@ -14,78 +14,109 @@
 // load map from MapBox
 // https://docs.mapbox.com/mapbox-gl-js/example/drag-a-point/
 
-	mapboxgl.accessToken = 'pk.eyJ1IjoiYW1hZ25hc2NvIiwiYSI6ImNsNjVqcTk1YjAzZzkzZHM3OXFoMTJqMzUifQ.O-oSk96QJMtHyMzQL80VyA';
+mapboxgl.accessToken = 'pk.eyJ1IjoiYW1hZ25hc2NvIiwiYSI6ImNsNjVqcTk1YjAzZzkzZHM3OXFoMTJqMzUifQ.O-oSk96QJMtHyMzQL80VyA';
+
+const map = new mapboxgl.Map({
+    container: 'map', // container ID
+    style: 'mapbox://styles/mapbox/streets-v11', // style URL
+    center: [coords.lng, coords.lat], // starting center in [lng, lat]
+    zoom: 1, // starting zoom
+    projection: 'globe', // display map as a 3D 'globe'. can use 'naturalEarth' for 2d
+    // add pitch and bearing
+    //pitch: 50,
+    //bearing: 150,
+});
     
-    const map = new mapboxgl.Map({
-        container: 'map', // container ID
-        style: 'mapbox://styles/mapbox/streets-v11', // style URL
-        center: [coords.lng, coords.lat], // starting center in [lng, lat]
-        zoom: 1, // starting zoom
-        projection: 'globe', // display map as a 3D 'globe'. can use 'naturalEarth' for 2d
-        // add pitch and bearing
-        //pitch: 50,
-        //bearing: 150,
+map.on('style.load', () => {
+    map.setFog({}); // Set the default atmosphere style
+});
+
+// terrain not working for some reason, but required for elevation data
+//map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+
+// Add text input box for user to search for location
+// https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-geocoder/ 
+map.addControl(
+    new MapboxGeocoder({
+    accessToken: mapboxgl.accessToken,
+    mapboxgl: mapboxgl
+
+    // update lon, lat
+    //coords = 
+    })
+);
+
+// Add a button for user to geolocate their device
+map.addControl(
+    new mapboxgl.GeolocateControl({
+    positionOptions: {
+    enableHighAccuracy: true
+    },
+    // When active the map will receive updates to the device's location as it changes.
+    trackUserLocation: true,
+    // Draw an arrow next to the location dot to indicate which direction the device is heading.
+    showUserHeading: true
+
+    // update lon, lat
+    // coords  = 
+    })
+);
+
+// generate a circle at coords using Turf
+// https://stackoverflow.com/questions/37599561/drawing-a-circle-with-the-radius-in-miles-meters-with-mapbox-gl-js
+let circleIt = function(lng,lat,rad){
+    let _center = turf.point([lng,lat]);
+    let _radius = rad;
+    let _options = {
+        steps: 80,
+        units: 'kilometers'
+    };
+    let _circle = turf.circle(_center, _radius, _options);
+    map.addSource("circleData", {
+        type: "geojson",
+        data: _circle,
     });
-     
-    map.on('style.load', () => {
-        map.setFog({}); // Set the default atmosphere style
-    });
-
-    //map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-
-    // Add text input box for user to search for location
-    // https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-geocoder/ 
-    map.addControl(
-        new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        mapboxgl: mapboxgl
-
-        // update lon, lat
-        //coords = 
-        })
-    );
-
-    // Add a button for user to geolocate their device
-    map.addControl(
-        new mapboxgl.GeolocateControl({
-        positionOptions: {
-        enableHighAccuracy: true
+    map.addLayer({
+        id: "circle-fill",
+        type: "fill",
+        source: "circleData",
+        paint: {
+            "fill-color": "blue",
+            "fill-opacity": 0.2,
         },
-        // When active the map will receive updates to the device's location as it changes.
-        trackUserLocation: true,
-        // Draw an arrow next to the location dot to indicate which direction the device is heading.
-        showUserHeading: true
+    });
+};
+map.on('load', circleIt(coords.lng,coords.lat,coords_accuracy));
 
-        // update lon, lat
-        // coords  = 
-        })
+// Determine clicked location
+// https://docs.mapbox.com/mapbox-gl-js/example/mouse-position/
+map.on('click', (e) => {
+    // update lon, lat
+    coords = e.lngLat;
+
+    // set a marker
+    //marker.setLngLat(coords);
+
+    // Sample & round the terrain elevation
+    let elevation = Math.floor(
+        // Do not use terrain exaggeration to get actual meter values
+        map.queryTerrainElevation(coords, { exaggerated: false })
     );
 
-    // Determine clicked location
-    // https://docs.mapbox.com/mapbox-gl-js/example/mouse-position/
-    map.on('click', (e) => {
-        // update lon, lat
-        coords = e.lngLat;
-        // set a marker
-        //marker.setLngLat(coords);
+    // update circle
+    map.getSource("circleData").setData(circleIt(coords.lng,coords.lat,coords_accuracy).data);
+    
+    // display lon, lat, elevation
+    document.getElementById('selected-area').innerHTML = 
+        'Lat: ' + Math.round((coords.lat + Number.EPSILON)*1000)/1000 + '; '
+        + 'Lon: ' + Math.round((coords.lng + Number.EPSILON)*1000)/1000
+        + '<br>'
+        + 'Elevation: ' + elevation + ' m (work in progress); '
+        + 'Search radius: ' + coords_accuracy + ' km'
+});
 
-        // Sample & round the terrain elevation
-        let elevation = Math.floor(
-            // Do not use terrain exaggeration to get actual meter values
-            map.queryTerrainElevation(coords, { exaggerated: false })
-        );
-        
-        // display lon, lat, elevation
-        document.getElementById('selected-area').innerHTML = 
-            'Lat: ' + Math.round((coords.lat + Number.EPSILON)*1000)/1000 + '; '
-            + 'Lon: ' + Math.round((coords.lng + Number.EPSILON)*1000)/1000
-            + '<br>'
-            + 'Elevation: ' + elevation + 'm (work in progress); '
-            + 'Search radius: ' + coords_accuracy + 'm'
-    });
-
-    // change map style 
-    // https://docs.mapbox.com/mapbox-gl-js/example/setstyle/
+// change map style 
+// https://docs.mapbox.com/mapbox-gl-js/example/setstyle/
 
 // let user know page is ready to search
 

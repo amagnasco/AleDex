@@ -13,6 +13,9 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
 
+    <!-- Turf GIS library -->
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
     <!-- Axios library -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
@@ -20,8 +23,11 @@
 </head>
 <body>
     <div id="top-section">
-        <h1 id="main-title">Welcome to AleDex!</h1>
-        <div id="main-descript">Find local species in your area! Uses data from iNaturalist.</div>
+        <div id="intro-section">
+            <h1 id="main-title">Welcome to AleDex!</h1>
+            <img id="logo" src="aleDex_icon.png">
+            <div id="main-descript">Find local species in your area! Uses data from iNaturalist.</div>
+        </div>
         <div id="search-section">
             <!-- User location -->
             <div id="user-location-descript">This website might ask for your location to position you on the search map.</div>
