@@ -2,11 +2,9 @@
 // Finds identified species for any given coordinates using the iNaturalist API
 
 // PAGE SETUP
-// generate loading messages
-// generate buttons
-// generate initial longitude and latitude
-    let coords = {lng: -72,lat: 22}
-    let coords_accuracy = 20; // in kilometers
+// generate initial datapoints
+    let coords = {lng: -72,lat: 22, rad: 20} // rad is radius in km
+    let taxon = "aves"
 
 // check if MapBox can render in this browser
 // https://docs.mapbox.com/mapbox-gl-js/example/check-for-support/
@@ -42,7 +40,7 @@ map.addControl(
     mapboxgl: mapboxgl
 
     // update lon, lat
-    //coords = 
+    //coords.lng = 
     })
 );
 
@@ -58,11 +56,11 @@ map.addControl(
     showUserHeading: true
 
     // update lon, lat
-    // coords  = 
+    // coords.lng  = 
     })
 );
 
-// generate a circle at coords using Turf
+// generate a circle at coords using Turf.js
 // https://stackoverflow.com/questions/37599561/drawing-a-circle-with-the-radius-in-miles-meters-with-mapbox-gl-js
 let circleIt = function(lng,lat,rad){
     let _center = turf.point([lng,lat]);
@@ -71,10 +69,15 @@ let circleIt = function(lng,lat,rad){
         steps: 80,
         units: 'kilometers'
     };
-    let _circle = turf.circle(_center, _radius, _options);
+    let circle = turf.circle(_center, _radius, _options);
+    return circle;
+};
+
+// render initial search radius circle, which will be updated on user input
+map.on('style.load', () => {
     map.addSource("circleData", {
         type: "geojson",
-        data: _circle,
+        data: circleIt(coords.lng,coords.lat,coords.rad)
     });
     map.addLayer({
         id: "circle-fill",
@@ -85,53 +88,81 @@ let circleIt = function(lng,lat,rad){
             "fill-opacity": 0.2,
         },
     });
-};
-map.on('load', circleIt(coords.lng,coords.lat,coords_accuracy));
+});
 
 // Determine clicked location
 // https://docs.mapbox.com/mapbox-gl-js/example/mouse-position/
-map.on('click', (e) => {
-    // update lon, lat
-    coords = e.lngLat;
-
-    // set a marker
-    //marker.setLngLat(coords);
-
+let updateLocation = function (lng, lat, rad){
     // Sample & round the terrain elevation
     let elevation = Math.floor(
         // Do not use terrain exaggeration to get actual meter values
-        map.queryTerrainElevation(coords, { exaggerated: false })
+        map.queryTerrainElevation([lng,lat], { exaggerated: false })
     );
-
     // update circle
-    map.getSource("circleData").setData(circleIt(coords.lng,coords.lat,coords_accuracy).data);
-    
+    map.getSource("circleData").setData(circleIt(lng,lat,rad));
     // display lon, lat, elevation
     document.getElementById('selected-area').innerHTML = 
-        'Lat: ' + Math.round((coords.lat + Number.EPSILON)*1000)/1000 + '; '
-        + 'Lon: ' + Math.round((coords.lng + Number.EPSILON)*1000)/1000
+        'Lat: ' + Math.round((lat + Number.EPSILON)*1000)/1000 + '; '
+        + 'Lon: ' + Math.round((lng + Number.EPSILON)*1000)/1000
         + '<br>'
         + 'Elevation: ' + elevation + ' m (work in progress); '
-        + 'Search radius: ' + coords_accuracy + ' km'
+        + 'Search radius: ' + rad + ' km'
+}
+
+// update location on click
+map.on('click', (e) => {
+    coords.lat = e.lngLat.lat;
+    coords.lng = e.lngLat.lng;
+    updateLocation(coords.lng,coords.lat,coords.rad);
 });
 
 // change map style 
 // https://docs.mapbox.com/mapbox-gl-js/example/setstyle/
 
 // let user know page is ready to search
+map.on('style.load', () => {
+    // enable search button
+    document.getElementById("submit-button").disabled = false;
+});
 
 // USER INPUT VALIDATION
 // listen for user input
-// determine if input is valid, return error message otherwise
-// determine if area is too large or will likely return too many results for API, return error message otherwise
-// print valid input as coordinates and accuracy radius
+// https://dev.to/am20dipi/how-to-build-a-simple-search-bar-in-javascript-4onf
+const taxonInput = document.getElementById("taxon-select");
+const radiusInput = document.getElementById("user-radius");
+const searchInput = document.getElementById("submit-button");
+
+taxonInput.addEventListener("input", (e) => {
+    let value = e.target.value
+    // determine if input is valid, return error message otherwise
+    if (value){
+        // valid input
+        taxon = value;
+    } else {
+        // invalid input error msg
+    }
+});
+
+radiusInput.addEventListener("input", (e) => {
+    let value = e.target.value
+    // determine if area is too large or will likely return too many results for API
+    if (value){
+        coords.rad = value;
+        // print valid input as coordinates and accuracy radius
+        updateLocation(coords.lng,coords.lat,coords.rad);
+    } else {
+        // invalid input error msg
+    }
+});
 
 // SEARCH
 // Take the minimum id to start looking for
 function recursiveGet(min_id, totalResults) {
 
     //Construct the url
-    let url = `https://api.inaturalist.org/v1/observations?id_above=${min_id}&lat=${lat}&lng=${lng}&radius=${radius}&order=asc&order_by=id&per_page=200`
+
+    // NEED TO ADD THE TAXON !!!!!!!!!!!!!!!!!
+    let url = `https://api.inaturalist.org/v1/observations?id_above=${min_id}&lat=${coords.lat}&lng=${coords.lng}&radius=${(coords.rad/1000)}&order=asc&order_by=id&per_page=200`
 
     // Get the data
     axios.get(url).then((rsp) => {
@@ -158,18 +189,24 @@ function recursiveGet(min_id, totalResults) {
 
 // Get the total number of results and the id of the first result
 function getNumResults() {
-    let url = `https://api.inaturalist.org/v1/observations?lat=${lat}&lng=${lng}8&radius=${radius}&order=asc&order_by=id&per_page=1`
+    // NEED TO ADD THE TAXON !!!!!!!!!!!!!!
+    let url = `https://api.inaturalist.org/v1/observations?lat=${coords.lat}&lng=${coords.lng}8&radius=${(coords.rad/1000)}&order=asc&order_by=id&per_page=1`
     axios.get(url).then((rsp) => {
         let total = rsp.data.total_results;
-        console.log(total)
+        console.log(`Results: ${total}!`)
+        document.getElementById("results-descript").innerHTML = "There have been "+total+" observations of this taxon in this area."
         // Start off by looking at 1 less than the first id
         recursiveGet(+rsp.data.results[0].id - 1, total);
     })
 }
 
 //Start it all off
-// getNumResults();
+searchInput.addEventListener("click", (e) => {
+    console.log(`Searching iNaturalist for ${taxon} within ${coords.rad}km of lat ${coords.lat} lon ${coords.lng}...`)
+    getNumResults();
+});
 
 // GENERATE STATISTICS ON PAGE
+
 
 // GENERATE RESULTS ON PAGE

@@ -20,8 +20,11 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/jpg" href="P8030733.JPG">
 </head>
 <body>
+    <div class="parallax">
+    <div class="main">
     <div id="top-section">
         <div id="intro-section">
             <h1 id="main-title">Welcome to AleDex!</h1>
@@ -34,11 +37,19 @@
             <div id="user-location"></div>
             <!-- Embedding MapBox -->
             <div id="map"></div>
-            <!-- User input to select taxon -->
-            <div id="taxon-select"></div>
+        </div>
+        <div id="search-input">
             <!-- text display of selected area and submit button -->
             <div id="selected-area">Please click on the map to select an area.</div>
-            <div id="submit-button"></div>
+            <!-- User input to select taxon -->
+            <label for="taxon-select">Taxon:</label>
+            <input type="text" id="taxon-select" placeholder="aves" pattern="[a-z]">
+            <span class="validity"></span>
+            <!-- User input to select search radius -->
+            <label for="user-radius">Radius in km:</label>
+            <input type="text" id="user-radius" size=3 placeholder="20" maxlength="3" pattern="[0-9]">
+            <span class="validity"></span>
+            <button id="submit-button" disabled="true">Search</button>
         </div>
     </div>
     <hr>
@@ -46,6 +57,8 @@
         <h2 id="results-title">Results:</h2>
         <div id="results-descript">Search for species that have been identified in a given area!</div>
         <div id="results-section"></div>
+    </div>
+    </div>
     </div>
 </body>
 <script src="AleDex.js"></script>
