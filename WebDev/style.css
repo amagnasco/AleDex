@@ -1,6 +1,29 @@
 body {
-    margin: 0;
+    background-color: #222;
+}
+
+.main {
     padding: 10%;
+    color: floralwhite;
+    text-shadow: 1px 0 0 #222, 0 -1px 0 #222, 0 1px 0 #222, -1px 0 0 #222;
+    max-width: 680px;
+    margin:auto;
+    align-items: center;
+}
+
+.parallax {
+    background-image: url("P8030733.JPG");
+    min-height: 500px;
+    height: 100%;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#top-section{
+    display: block;
+    z-index: 2;
 }
 
 #main-title {
@@ -8,31 +31,46 @@ body {
     padding: -10%;
 }
 
+#logo {
+    image-rendering: pixelated;
+    width: 100px;
+    height: auto;
+    position: relative;
+    left: 400px;
+    top: 1vh;
+    z-index: 1;
+    display: block;
+}
+
 #map {
     position: relative;
     border: 1px solid black;
     height: 50vh;
     width: 75%;
-    padding: 10vh;
+    top: 2vh;
 }
 
 #results-section {
     position: -webkit-sticky; /* for Safari */
     position: sticky;
     top: 0;
+    text-align: center;
 }
 
 #selected-area {
     display: table;
-    position: relative;
-    margin: 0px auto;
+    position: static;
+    margin: auto;
     word-wrap: anywhere;
     white-space: pre-wrap;
     padding: 10px;
     border: none;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: 18px;
     text-align: center;
-    color: #222;
-    background: #fff;
+}
+
+#search-input {
+    padding: 5vh;
+    text-align: center;
 }
